@@ -7,9 +7,20 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(can_plugins2 REQUIRED)
+find_package(sensor_msgs REQUIRED)
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
+
+add_executable(servo src/servo.cpp)
+ament_target_dependencies(servo rclcpp std_msgs can_plugins2 sensor_msgs)
+
+install(TARGETS
+  talker
+  DESTINATION lib/${PROJECT_NAME})
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
