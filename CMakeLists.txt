@@ -15,11 +15,11 @@ find_package(sensor_msgs REQUIRED)
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 
-add_executable(servo src/servo.cpp)
+add_executable(servo src/servo_node_2.cpp)
 ament_target_dependencies(servo rclcpp std_msgs can_plugins2 sensor_msgs)
 
 install(TARGETS
-  talker
+  servo
   DESTINATION lib/${PROJECT_NAME})
 
 if(BUILD_TESTING)
