@@ -7,17 +7,17 @@
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/string.hpp"
 #include "sensor_msgs/msg/joy.hpp"
-#include <can_plugins2/msg/frame.hpp>
+#include <robomas_plugins/msg/frame.hpp>
 #include "can_utils.hpp"
 #include <cmath>
 
 using namespace can_utils;
 
-can_plugins2::msg::Frame generate_servo_mode(const uint16_t id, const uint8_t mode)
+robomas_plugins::msg::Frame generate_servo_mode(const uint16_t id, const uint8_t mode)
 {
   const int byte_size = 1;  // Mode is 1 byte.
   
-  can_plugins2::msg::Frame frame;
+  robomas_plugins::msg::Frame frame;
   frame.id = id;
   frame.is_rtr = false;
   frame.is_extended = false;
@@ -30,11 +30,11 @@ can_plugins2::msg::Frame generate_servo_mode(const uint16_t id, const uint8_t mo
   return frame;
 }
 
-can_plugins2::msg::Frame generate_servo_target(const uint16_t id, const float data)
+robomas_plugins::msg::Frame generate_servo_target(const uint16_t id, const float data)
 {
   const int float_size = 4;  // float is 4 bytes.
   
-  can_plugins2::msg::Frame frame;
+  robomas_plugins::msg::Frame frame;
   frame.id = id;
   frame.is_rtr = false;
   frame.is_extended = false;
@@ -53,7 +53,7 @@ class MinimalPublisher : public rclcpp::Node
     MinimalPublisher()
     : Node("servo_node")
     {
-      publisher_ = this->create_publisher<can_plugins2::msg::Frame>("can_tx", 10);
+      publisher_ = this->create_publisher<robomas_plugins::msg::Frame>("robomas_can_tx2", 10);
 
       joy_subscriber_ = this->create_subscription<sensor_msgs::msg::Joy>(
         "joy", 10, std::bind(&MinimalPublisher::joy_callback, this, std::placeholders::_1)
@@ -61,39 +61,51 @@ class MinimalPublisher : public rclcpp::Node
     }
 
     void set_angle(uint8_t channel,uint16_t angle){
-      uint8_t data[8] = {};
-      std::memcpy(&data[2*(channel-1)], &angle, 2);
-      publisher_->publish(can_utils::generate_frame(0x301,data));
+      
+      robomas_plugins::msg::Frame frame;
+      frame.id = 0x301;
+      frame.is_rtr = false;
+      frame.is_extended = false;
+      frame.is_error = false;
+
+      frame.dlc = 8;
+      frame.data.fill(0);
+
+      std::memcpy(&frame.data[2*(channel-1)], &angle, 2);
+
+      publisher_->publish(frame);
     }
 
-    std::unique_ptr<can_plugins2::msg::Frame> set_angle2(uint8_t channel,uint16_t angle){//悪い実装
-      uint8_t data[8] = {};
-      std::memcpy(&data[2*(channel-1)], &angle, 2);
-      return can_utils::generate_frame(0x301,data);//ポインターの先がいつまで生きているのか
-    }
+    // std::unique_ptr<robomas_plugins::msg::Frame> set_angle2(uint8_t channel,uint16_t angle){//悪い実装
+    //   uint8_t data[8] = {};
+    //   std::memcpy(&data[2*(channel-1)], &angle, 2);
+    //   return can_utils::generate_frame(0x301,data);//ポインターの先がいつまで生きているのか
+    // }
 
   private:
     void joy_callback(const sensor_msgs::msg::Joy::SharedPtr joy_msg)
     {
-      if (joy_msg->buttons[0] == 1){      
+      if (joy_msg->buttons[7] == 1){      
         publisher_->publish(generate_servo_mode(0x300, 1));
       }
 
-      if (joy_msg->buttons[1] == 1){      
+      if (joy_msg->buttons[6] == 1){      
         publisher_->publish(generate_servo_mode(0x300, 0));
       }
 
-      if (joy_msg->buttons[2] == 1){      
-        set_angle(1, 12000 + 58000*40/270);
+      if (joy_msg->buttons[1] == 1){      
+        set_angle(2, 11000 + 48000*40/270);
+        set_angle(3, 12000 + 48000*40/270);
       }
 
       if (joy_msg->buttons[3] == 1){      
-        set_angle(2, 12000 + 58000);
+        set_angle(2, 12000 + 48000*130/270);
+        set_angle(3, 11000 + 48000*130/270);
       }
     }
 
     rclcpp::Subscription<sensor_msgs::msg::Joy>::SharedPtr joy_subscriber_;
-    rclcpp::Publisher<can_plugins2::msg::Frame>::SharedPtr publisher_;
+    rclcpp::Publisher<robomas_plugins::msg::Frame>::SharedPtr publisher_;
 };
 
 int main(int argc, char **argv)

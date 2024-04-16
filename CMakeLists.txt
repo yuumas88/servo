@@ -9,14 +9,20 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
-find_package(can_plugins2 REQUIRED)
+find_package(robomas_plugins REQUIRED)
 find_package(sensor_msgs REQUIRED)
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 
-add_executable(servo src/servo_node_2.cpp)
-ament_target_dependencies(servo rclcpp std_msgs can_plugins2 sensor_msgs)
+add_executable(servo src/servo_node_3.cpp)
+
+target_include_directories(servo PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>)
+target_compile_features(servo PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+
+ament_target_dependencies(servo rclcpp std_msgs robomas_plugins sensor_msgs)
 
 install(TARGETS
   servo
