@@ -6,17 +6,17 @@
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/string.hpp"
 #include "sensor_msgs/msg/joy.hpp"
-#include <can_plugins2/msg/frame.hpp>
-#include "can_utils.hpp"
+#include <robomas_plugins/msg/frame.hpp>
+// #include "can_utils.hpp"
 #include <cmath>
 
 using namespace can_utils;
 
-can_plugins2::msg::Frame generate_servo_mode(const uint16_t id, const uint8_t mode)
+robomas_plugins::msg::Frame generate_servo_mode(const uint16_t id, const uint8_t mode)
 {
   const int byte_size = 1;  // Mode is 1 byte.
   
-  can_plugins2::msg::Frame frame;
+  robomas_plugins::msg::Frame frame;
   frame.id = id;
   frame.is_rtr = false;
   frame.is_extended = false;
@@ -29,11 +29,11 @@ can_plugins2::msg::Frame generate_servo_mode(const uint16_t id, const uint8_t mo
   return frame;
 }
 
-can_plugins2::msg::Frame generate_servo_target(const uint16_t id, const float data)
+robomas_plugins::msg::Frame generate_servo_target(const uint16_t id, const float data)
 {
   const int float_size = 4;  // float is 4 bytes.
   
-  can_plugins2::msg::Frame frame;
+  robomas_plugins::msg::Frame frame;
   frame.id = id;
   frame.is_rtr = false;
   frame.is_extended = false;
@@ -52,7 +52,7 @@ public:
   MinimalPublisher()
   : Node("servo_node")
   {
-    publisher_ = this->create_publisher<can_plugins2::msg::Frame>("can_tx", 10);
+    publisher_ = this->create_publisher<robomas_plugins::msg::Frame>("robomas_can_tx2", 10);
 
     joy_subscriber_ = this->create_subscription<sensor_msgs::msg::Joy>(
       "joy", 10, std::bind(&MinimalPublisher::joy_callback, this, std::placeholders::_1)
@@ -80,7 +80,7 @@ private:
   }
 
   rclcpp::Subscription<sensor_msgs::msg::Joy>::SharedPtr joy_subscriber_;
-  rclcpp::Publisher<can_plugins2::msg::Frame>::SharedPtr publisher_;
+  rclcpp::Publisher<robomas_plugins::msg::Frame>::SharedPtr publisher_;
 };
 
 int main(int argc, char **argv)
