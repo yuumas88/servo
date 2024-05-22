@@ -30,33 +30,16 @@ robomas_plugins::msg::Frame generate_servo_mode(const uint16_t id, const uint8_t
   return frame;
 }
 
-robomas_plugins::msg::Frame generate_servo_target(const uint16_t id, const float data)
-{
-  const int float_size = 4;  // float is 4 bytes.
-  
-  robomas_plugins::msg::Frame frame;
-  frame.id = id;
-  frame.is_rtr = false;
-  frame.is_extended = false;
-  frame.is_error = false;
-
-  frame.dlc = float_size;
-
-  can_pack<uint16_t>(frame.data, data);
-
-  return frame;
-}
-
-class MinimalPublisher : public rclcpp::Node
+class ServoPublisher : public rclcpp::Node
 {
   public:
-    MinimalPublisher()
+    ServoPublisher()
     : Node("servo_node")
     {
       publisher_ = this->create_publisher<robomas_plugins::msg::Frame>("robomas_can_tx2", 10);
 
       joy_subscriber_ = this->create_subscription<sensor_msgs::msg::Joy>(
-        "joy", 10, std::bind(&MinimalPublisher::joy_callback, this, std::placeholders::_1)
+        "joy", 10, std::bind(&ServoPublisher::joy_callback, this, std::placeholders::_1)
       );
     }
 
@@ -112,7 +95,7 @@ int main(int argc, char **argv)
 {
     rclcpp::init(argc, argv);
 
-    auto node = std::make_shared<MinimalPublisher>();
+    auto node = std::make_shared<ServoPublisher>();
 
     rclcpp::spin(node);
 
